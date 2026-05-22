@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Astronomical Object Classification</title>
+</head>
+<body>
+    <h1>🌌 Astronomical Object Classification</h1>
+
+    <input type="file" id="imageInput">
+    <button onclick="uploadImage()">Predict</button>
+
+    <h2 id="result"></h2>
+    <p id="info"></p>
+
+    <script>
+        async function uploadImage() {
+            const fileInput = document.getElementById('imageInput');
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            const response = await fetch("/predict", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            document.getElementById("result").innerText =
+                "Prediction: " + data.prediction +
+                " (" + data.confidence + "%)";
+
+            document.getElementById("info").innerText =
+                data.info.description +
+                " Example: " + data.info.example;
+        }
+    </script>
+</body>
+</html>

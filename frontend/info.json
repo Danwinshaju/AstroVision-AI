@@ -1,0 +1,212 @@
+const infoMap = {
+
+"asteroid_belt": {
+name:"Asteroid Belt",
+category:"Solar System Region",
+description:"The asteroid belt is a region between Mars and Jupiter containing rocky bodies.",
+history:{
+coined_by:"Alexander von Humboldt",
+year_named:"1808",
+discovered_by:"Giuseppe Piazzi",
+year_discovered:"1801",
+first_major_observation:"Discovery of Ceres"
+},
+key_facts:{
+location:"Between Mars and Jupiter",
+largest_object:"Ceres"
+},
+scientific_significance:[
+"Planet formation studies",
+"Primitive solar material"
+],
+major_missions:["Dawn"],
+notable_events:["Ceres discovery 1801"],
+fun_fact:"Asteroids are widely spaced."
+},
+
+"asteroids":{
+name:"Asteroids",
+category:"Small Solar System Bodies",
+description:"Asteroids are rocky remnants from early solar system formation.",
+history:{
+coined_by:"William Herschel",
+year_named:"1802",
+discovered_by:"Giuseppe Piazzi",
+year_discovered:"1801",
+first_major_observation:"Ceres discovery"
+},
+key_facts:{
+composition:"Rock and metal",
+size_range:"Meters to hundreds km"
+},
+scientific_significance:[
+"Solar system formation",
+"Impact hazard studies"
+],
+major_missions:["OSIRIS-REx","Hayabusa","Dawn"],
+notable_events:["Chicxulub impact"],
+fun_fact:"Some asteroids contain water."
+},
+
+"comets":{
+name:"Comets",
+category:"Small Solar System Bodies",
+description:"Comets are icy bodies forming tails near the Sun.",
+history:{
+coined_by:"Ancient Greeks",
+year_named:"Ancient",
+discovered_by:"Ancient observers",
+year_discovered:"Prehistoric",
+first_major_observation:"Halley orbit prediction"
+},
+key_facts:{
+composition:"Ice and dust",
+origin:"Oort Cloud"
+},
+scientific_significance:["Solar system formation"],
+major_missions:["Rosetta"],
+notable_events:["Rosetta landing"],
+fun_fact:"Tails point away from Sun."
+},
+
+"moon":{
+name:"Moon",
+category:"Natural Satellite",
+description:"Earth's natural satellite.",
+history:{
+coined_by:"Ancient",
+year_named:"Ancient",
+discovered_by:"Known since antiquity",
+year_discovered:"Prehistoric",
+first_major_observation:"Galileo 1609"
+},
+key_facts:{
+distance:"384000 km"
+},
+scientific_significance:["Tidal effects"],
+major_missions:["Apollo"],
+notable_events:["Moon landing 1969"],
+fun_fact:"Same face always visible."
+},
+
+"titan":{
+name:"Titan",
+category:"Natural Satellite",
+description:"Largest moon of Saturn with thick atmosphere.",
+history:{
+coined_by:"John Herschel",
+year_named:"1847",
+discovered_by:"Christiaan Huygens",
+year_discovered:"1655",
+first_major_observation:"Voyager 1"
+},
+key_facts:{
+distance:"1.2 billion km"
+},
+scientific_significance:["Methane lakes"],
+major_missions:["Cassini-Huygens"],
+notable_events:["Huygens landing"],
+fun_fact:"Has methane rain."
+},
+
+"earth":{
+name:"Earth",
+category:"Planet",
+description:"Earth supports life.",
+history:{
+coined_by:"Ancient",
+year_named:"Ancient",
+discovered_by:"Known since antiquity",
+year_discovered:"Prehistoric",
+first_major_observation:"Apollo photos"
+},
+key_facts:{
+diameter:"12742 km"
+},
+scientific_significance:["Supports life"],
+major_missions:["ISS"],
+notable_events:["First Earth photo"],
+fun_fact:"71% water."
+},
+
+"mars":{
+name:"Mars",
+category:"Planet",
+description:"Mars is the red planet.",
+history:{
+coined_by:"Romans",
+year_named:"Ancient",
+discovered_by:"Ancient",
+year_discovered:"Prehistoric",
+first_major_observation:"Galileo"
+},
+key_facts:{
+moons:"2"
+},
+scientific_significance:["Search for life"],
+major_missions:["Perseverance"],
+notable_events:["Water evidence"],
+fun_fact:"Has Olympus Mons."
+},
+
+"jupiter":{
+name:"Jupiter",
+category:"Planet",
+description:"Largest planet in Solar System.",
+history:{
+coined_by:"Ancient",
+year_named:"Ancient",
+discovered_by:"Ancient",
+year_discovered:"Prehistoric",
+first_major_observation:"Galileo"
+},
+key_facts:{
+distance:"778 million km"
+},
+scientific_significance:["Gas giant"],
+major_missions:["Juno"],
+notable_events:["Great Red Spot"],
+fun_fact:"Has many moons."
+},
+
+"international_space_station":{
+name:"International Space Station",
+category:"Space Station",
+description:"Orbiting research station.",
+history:{
+coined_by:"NASA",
+year_named:"1998",
+discovered_by:"Man-made",
+year_discovered:"1998",
+first_major_observation:"First crew 2000"
+},
+key_facts:{
+altitude:"400 km"
+},
+scientific_significance:["Microgravity research"],
+major_missions:["Expeditions"],
+notable_events:["Continuous habitation"],
+fun_fact:"Visible from Earth."
+},
+
+"rovers":{
+name:"Rovers",
+category:"Spacecraft",
+description:"Robotic surface explorers.",
+history:{
+coined_by:"NASA",
+year_named:"1970",
+discovered_by:"Man-made",
+year_discovered:"1970",
+first_major_observation:"Lunokhod"
+},
+key_facts:{
+distance:"Varies"
+},
+scientific_significance:["Surface exploration"],
+major_missions:["Mars Rovers"],
+notable_events:["Curiosity landing"],
+fun_fact:"Controlled from Earth."
+}
+
+};

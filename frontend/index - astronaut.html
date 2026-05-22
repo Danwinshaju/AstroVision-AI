@@ -1,0 +1,318 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GLB Globe Viewer</title>
+
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+      }
+    </style>
+
+    <!-- Import Map -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+      /* Scene */
+
+      const scene = new THREE.Scene();
+
+      /* Camera */
+
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.001,
+        1000,
+      );
+
+      // camera.position.set(0, 0, 4);
+      // camera.position.set(-2.2, 1.2, 3.2);
+      camera.position.set(0.8, 0.9, 2.8);
+
+      /* Renderer */
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+      });
+
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      renderer.physicallyCorrectLights = true;
+
+      document.body.appendChild(renderer.domElement);
+
+      /* Lights */
+
+      const light = new THREE.DirectionalLight(0xffffff, 4);
+
+      /* Top-left sun style light */
+
+      light.position.set(-8, 10, 6);
+
+      scene.add(light);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+      /* Controls */
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+
+      controls.enableDamping = true;
+
+      controls.zoomSpeed = 0.8;
+
+      controls.enablePan = false;
+
+      /* Load GLB */
+
+      let globe;
+      let satellite;
+      let iss;
+      let orbitAngle = 0;
+      let issAngle = 1.2;
+      let astronaut;
+      let driftTime = 0;
+
+      const loader = new GLTFLoader();
+
+      loader.load(
+        "./3d-models/earthtriangles1k.glb",
+
+        (gltf) => {
+          globe = gltf.scene;
+
+          /* Blender Texture + Stability Fix */
+
+          globe.traverse((child) => {
+            if (child.isMesh) {
+              child.material.needsUpdate = true;
+
+              child.frustumCulled = false;
+
+              /* Texture fix */
+
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+              }
+
+              /* Lighting balance */
+
+              child.material.metalness = 0.2;
+              child.material.roughness = 0.8;
+            }
+          });
+
+          scene.add(globe);
+
+          globe.position.set(1, 1, 0);
+          globe.scale.set(1, 1, 1);
+          /* Auto-stable zoom without forcing 0,0,0 */
+
+          const box = new THREE.Box3().setFromObject(globe);
+
+          const size = box.getSize(new THREE.Vector3()).length();
+
+          const center = box.getCenter(new THREE.Vector3());
+
+          // controls.target.copy(center);
+          controls.target.copy(globe.position);
+
+          controls.dampingFactor = 0.05;
+          controls.rotateSpeed = 0.6;
+          controls.zoomSpeed = 0.6;
+
+          /* Stable clipping */
+
+          camera.near = size / 500;
+          camera.far = size * 50;
+
+          camera.updateProjectionMatrix();
+
+          /* Stable zoom limits */
+
+          // controls.minDistance = size * 0.6;
+          // controls.maxDistance = size * 8;
+
+          controls.maxDistance = 50;
+          controls.minDistance = 1;
+
+          controls.update();
+
+          loader.load("./3d-models/earth-sat-1.glb", (gltf) => {
+            satellite = gltf.scene;
+
+            satellite.scale.set(0.0002, 0.0002, 0.0002);
+
+            scene.add(satellite);
+            /* Natural satellite tilt */
+            satellite.rotation.x = -3.5;
+            satellite.rotation.y = -3.5;
+            satellite.rotation.z = -3.2;
+          });
+
+          loader.load("./3d-models/iss.glb", (gltf) => {
+            iss = gltf.scene;
+            iss.scale.set(0.08, 0.08, 0.08);
+            scene.add(iss);
+            /* Natural ISS tilt */
+
+            iss.rotation.x = -0.4; // forward tilt
+            iss.rotation.y = 0.6; // sideways tilt
+            iss.rotation.z = 0.2; // slight roll
+          });
+
+          addStarField();
+          loader.load("./3d-models/animated_astronaut_in_space_suit_loop.glb", (gltf) => {
+            astronaut = gltf.scene;
+
+            /* Scale astronaut */
+
+            astronaut.scale.set(0.05, 0.05, 0.05);
+
+            scene.add(astronaut);
+
+            /* Initial position (left side of scene) */
+
+            astronaut.position.set(-1.5, 0.2, 0.3);
+
+            /* Natural tilt */
+
+            astronaut.rotation.x = 0.3;
+            astronaut.rotation.y = 1.2;
+          });
+        },
+
+        undefined,
+
+        (error) => {
+          console.error(error);
+        },
+      );
+
+      /* Animation */
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        controls.update();
+
+        /* Earth rotation */
+
+        if (globe) {
+          globe.rotation.y += 0.0006;
+        }
+
+        /* Satellite orbit */
+
+        orbitAngle += 0.01;
+
+        if (globe && satellite) {
+          const earthPos = globe.position;
+
+          const radius = 1.6;
+
+          satellite.position.set(
+            earthPos.x + radius * Math.cos(orbitAngle),
+            earthPos.y + 0.2,
+            earthPos.z + radius * Math.sin(orbitAngle),
+          );
+
+          satellite.lookAt(earthPos);
+        }
+
+        /* ISS static position */
+
+        if (globe && iss) {
+          const earthPos = globe.position;
+
+          iss.position.set(
+            earthPos.x - 2.5, // more left
+            earthPos.y + 1.2, // more up
+            earthPos.z + 0.6, // slight forward
+          );
+        }
+
+        /*Astronaut*/
+        driftTime += 0.003;
+        if (astronaut) {
+          astronaut.position.x = -1.5 + Math.sin(driftTime) * 0.4;
+
+          astronaut.position.y = 0.2 + Math.cos(driftTime * 0.7) * 0.3;
+
+          astronaut.position.z = 0.3 + Math.sin(driftTime * 0.5) * 0.2;
+
+          /* Slow rotation */
+
+          astronaut.rotation.y += 0.002;
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      function addStarField() {
+        /* Starfield */
+
+        const starGeometry = new THREE.BufferGeometry();
+
+        const starCount = 8000;
+
+        const starVertices = [];
+
+        for (let i = 0; i < starCount; i++) {
+          const x = (Math.random() - 0.5) * 750;
+          const y = (Math.random() - 0.5) * 750;
+          const z = (Math.random() - 0.5) * 750;
+
+          starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(starVertices, 3),
+        );
+
+        const starMaterial = new THREE.PointsMaterial({
+          color: 0xffffff,
+          size: 0.7,
+        });
+
+        const stars = new THREE.Points(starGeometry, starMaterial);
+
+        scene.add(stars);
+      }
+
+      /* Resize */
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>

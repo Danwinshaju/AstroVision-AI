@@ -1,0 +1,817 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GLB Globe Viewer</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+      }
+    </style>
+
+    <!-- Import Map -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <style>
+      /* Upload and result panels: centered and responsive */
+      #uploadBox,
+      #resultBox {
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="UTF-8" />
+            <title>GLB Globe Viewer</title>
+            <link
+              rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+            />
+            <style>
+              body {
+                margin: 0;
+                overflow: hidden;
+                background: black;
+              }
+            </style>
+
+            <!-- Import Map -->
+            <script type="importmap">
+              {
+                "imports": {
+                  "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                  "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                }
+              }
+            </script>
+            <style>
+              #uploadBox,
+              #resultBox {
+                position: absolute;
+
+                top: 50%;
+                transform: translateY(-50%);
+                left: 40px;
+
+                width: 260px;
+
+                padding: 20px;
+
+                border-radius: 12px;
+
+                background: rgba(10, 20, 40, 0.5);
+
+                backdrop-filter: blur(8px);
+
+                border: 1px solid rgba(120, 180, 255, 0.4);
+
+                box-shadow: 0 0 25px rgba(80, 150, 255, 0.3);
+
+                color: white;
+
+                font-family: Arial;
+
+                z-index: 10;
+              }
+              #resultBox {
+                display: none;
+                z-index: 11;
+                top: 50%;
+                left: 50%;
+                height: 90vh;
+                width: 90vw;
+                transform: translate(-50%, -50%);
+              }
+
+              .title {
+                font-size: 18px;
+
+                margin-bottom: 15px;
+
+                color: #8ec8ff;
+              }
+
+              #dropZone,
+              #facts,
+              #resultBaseDetails,
+              #resultAdditionalDetails {
+                border: 2px dashed rgba(120, 180, 255, 0.6);
+
+                border-radius: 10px;
+
+                padding: 25px;
+
+                text-align: center;
+
+                cursor: pointer;
+
+                transition: 0.3s;
+              }
+
+              #dropZone:hover {
+                background: rgba(80, 150, 255, 0.1);
+
+                border-color: #8ec8ff;
+              }
+
+              #fileInput {
+                display: none;
+              }
+              .close-btn {
+                float: right;
+                background-color: rgb(210, 16, 71);
+                color: white;
+                cursor: pointer;
+                padding: 5px 10px;
+                border-radius: 5px;
+              }
+              #resultGrid {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 20px;
+              }
+              #resultBaseDetails {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+              }
+              #resultGrid .question{
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 0.3rem;
+                margin-top: 1rem;
+              }
+              #resultGrid .answer{
+                padding-left: 1rem;
+                margin: 0;
+                text-align: left;
+              }
+              #facts {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+              }
+            </style>
+          </head>
+
+          <body>
+            <div id="uploadBox">
+              <div id="uploadContent">
+                <div class="title">Upload Space Image</div>
+
+                <div id="dropZone">
+                  Drop Image Here<br />
+                  or Click to Upload
+                </div>
+                <input type="file" id="fileInput" accept="image/*" />
+              </div>
+            </div>
+            <div id="resultBox">
+              <div id="resultContent">
+                <div class="title">
+                  Predicted Result
+                  <span
+                    class="close-btn"
+                    onclick="
+                      document.getElementById('resultBox').style.display = 'none'
+                    "
+                    ><span class="material-symbols-outlined"> close </span></span
+                  >
+                </div>
+                <div id="resultGrid">
+                  <div class="result-col">
+                    <h2 id="resultTitle"></h2>
+                    <div id="3dModelView"></div>
+                  </div>
+                  <div class="result-col">
+                    <div id="resultBaseDetails"></div>
+                  </div>
+                  <div class="result-col">
+                    <div id="resultAdditionalDetails"></div>
+                  </div>
+                </div>
+              </div>
+              <div id="facts">
+                <div id="funfact"></div>
+                <div id="notableevent"></div>
+              </div>
+            </div>
+            <script type="module">
+              import * as THREE from "three";
+              import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+              import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+              /* Scene */
+
+              const scene = new THREE.Scene();
+
+              /* Camera */
+
+              const camera = new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.001,
+                1000,
+              );
+
+              // camera.position.set(0, 0, 4);
+              // camera.position.set(-2.2, 1.2, 3.2);
+              camera.position.set(0.8, 0.9, 2.8);
+
+              /* Renderer */
+
+              const renderer = new THREE.WebGLRenderer({
+                antialias: true,
+              });
+
+              renderer.setSize(window.innerWidth, window.innerHeight);
+
+              renderer.setPixelRatio(window.devicePixelRatio);
+
+              renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+              renderer.physicallyCorrectLights = true;
+
+              document.body.appendChild(renderer.domElement);
+
+              /* Lights */
+
+              const light = new THREE.DirectionalLight(0xffffff, 4);
+
+              /* Top-left sun style light */
+
+              light.position.set(-8, 10, 6);
+
+              scene.add(light);
+
+              scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+              /* Controls */
+
+              const controls = new OrbitControls(camera, renderer.domElement);
+
+              controls.enableDamping = true;
+
+              controls.zoomSpeed = 0.8;
+
+              controls.enablePan = false;
+
+              /* Load GLB */
+              const clock = new THREE.Clock();
+              let globe;
+              let satellite;
+              let iss;
+              let orbitAngle = 0;
+              let issAngle = 1.2;
+              let astronaut;
+              let driftTime = 0;
+
+              let astronautMixer;
+
+              let astronautX = -3;
+              let astronautSpeed = 0.005;
+
+              let astronautY = 0.5;
+              let astronautZ = 1.5;
+
+              let asteroid;
+              let asteroidGroup;
+
+              let asteroidActive = false;
+              let asteroidX = 4.0;
+              let asteroidSpeed = 0.02;
+
+              // let asteroidTimer = 0;
+              // let asteroidDelay = 8; // secon2s
+
+              let jitterAmount = 0;
+
+              /* COMET SYSTEM */
+              let cometGroup;
+              let comet;
+
+              let cometActive = false;
+
+              let cometX = 4.0;
+
+              let cometSpeed = 0.0025;
+              let cometBaseRotation;
+              // let cometTimer = 0;
+              // let cometDelay = 2;
+
+              let cometJitter = 0;
+
+              /* FLYBY SEQUENCE */
+
+              let flybyTimer = 0;
+              let flybyDelay = 8;
+
+              let nextFlyby = "asteroid";
+
+              const loader = new GLTFLoader();
+
+              loader.load(
+                "/3d-models/earthtriangles1k.glb",
+
+                (gltf) => {
+                  globe = gltf.scene;
+
+                  /* Blender Texture + Stability Fix */
+
+                  globe.traverse((child) => {
+                    if (child.isMesh) {
+                      child.material.needsUpdate = true;
+
+                      child.frustumCulled = false;
+
+                      /* Texture fix */
+
+                      if (child.material.map) {
+                        child.material.map.colorSpace = THREE.SRGBColorSpace;
+                      }
+
+                      /* Lighting balance */
+
+                      child.material.metalness = 0.2;
+                      child.material.roughness = 0.8;
+                    }
+                  });
+
+                  scene.add(globe);
+
+                  globe.position.set(1, 1, 0);
+                  globe.scale.set(1, 1, 1);
+                  /* Auto-stable zoom without forcing 0,0,0 */
+
+                  const box = new THREE.Box3().setFromObject(globe);
+
+                  const size = box.getSize(new THREE.Vector3()).length();
+
+                  const center = box.getCenter(new THREE.Vector3());
+
+                  // controls.target.copy(center);
+                  controls.target.copy(globe.position);
+
+                  controls.dampingFactor = 0.05;
+                  controls.rotateSpeed = 0.6;
+                  controls.zoomSpeed = 0.6;
+
+                  /* Stable clipping */
+
+                  camera.near = size / 500;
+                  camera.far = size * 50;
+
+                  camera.updateProjectionMatrix();
+
+                  /* Stable zoom limits */
+
+                  // controls.minDistance = size * 0.6;
+                  // controls.maxDistance = size * 8;
+
+                  controls.maxDistance = 50;
+                  controls.minDistance = 1;
+
+                  controls.update();
+
+                  loader.load("/3d-models/earth-sat-1.glb", (gltf) => {
+                    satellite = gltf.scene;
+
+                    satellite.scale.set(0.0002, 0.0002, 0.0002);
+
+                    scene.add(satellite);
+                    /* Natural satellite tilt */
+                    satellite.rotation.x = -3.5;
+                    satellite.rotation.y = -3.5;
+                    satellite.rotation.z = -3.2;
+                  });
+
+                  loader.load("/3d-models/iss.glb", (gltf) => {
+                    iss = gltf.scene;
+                    iss.scale.set(0.08, 0.08, 0.08);
+                    scene.add(iss);
+                    /* Natural ISS tilt */
+
+                    iss.rotation.x = -0.4; // forward tilt
+                    iss.rotation.y = 0.6; // sideways tilt
+                    iss.rotation.z = 0.2; // slight roll
+                  });
+
+                  addStarField();
+                  loader.load(
+                    "/3d-models/animated_astronaut_in_space_suit_loop.glb",
+                    (gltf) => {
+                      astronaut = gltf.scene;
+
+                      /* Scale astronaut */
+
+                      astronaut.scale.set(0.05, 0.05, 0.05);
+
+                      scene.add(astronaut);
+
+                      /* Animation */
+
+                      astronautMixer = new THREE.AnimationMixer(astronaut);
+
+                      const action = astronautMixer.clipAction(gltf.animations[0]);
+
+                      action.play();
+
+                      /* Initial position (left side of scene) */
+            const baseAsteroid = gltf.scene;
+
+            asteroidGroup = new THREE.Group();
+
+            scene.add(asteroidGroup);
+
+            /* Create main asteroid */
+
+            asteroid = baseAsteroid.clone();
+
+            asteroid.scale.set(0.18, 0.18, 0.18);
+
+            asteroidGroup.add(asteroid);
+
+            /* Create trailing rocks */
+
+            for (let i = 0; i < 5; i++) {
+              const rock = baseAsteroid.clone();
+
+              rock.scale.set(
+                0.04 + Math.random() * 0.04,
+                0.04 + Math.random() * 0.04,
+                0.04 + Math.random() * 0.04,
+              );
+
+              rock.position.set(
+                -Math.random() * 1.5,
+                Math.random() * 0.5,
+                Math.random() * 0.3,
+              );
+
+              asteroidGroup.add(rock);
+            }
+
+            asteroidGroup.visible = false;
+          });
+
+          loader.load("/3d-models/meteor.glb", (gltf) => {
+            cometGroup = new THREE.Group();
+
+            comet = gltf.scene;
+
+            /* Scale */
+
+            comet.scale.set(0.2, 0.2, 0.2);
+
+            /* CENTER THE MODEL */
+
+            const box = new THREE.Box3().setFromObject(comet);
+            const center = box.getCenter(new THREE.Vector3());
+
+            comet.position.sub(center);
+
+            /* Add to group */
+
+            cometGroup.add(comet);
+
+            scene.add(cometGroup);
+
+            cometGroup.visible = false;
+          });
+        },
+
+        undefined,
+
+        (error) => {
+          console.error(error);
+        },
+      );
+
+      function resetAstronaut() {
+        astronautX = -2.2;
+
+        /* Random vertical position */
+
+        astronautY = Math.random() * 0.6 - 0.2;
+
+        /* Always near camera */
+
+        astronautZ = camera.position.z - 0.7;
+
+        /* Random speed */
+
+        astronautSpeed = 0.003 + Math.random() * 0.003;
+      }
+      /* Animation */
+      function spawnAsteroids() {
+        if (!asteroidGroup) return;
+
+        asteroidActive = true;
+
+        asteroidX = -6;
+
+        /* Start near camera */
+
+        asteroidGroup.position.set(
+          camera.position.x + asteroidX,
+          camera.position.y,
+          camera.position.z - 0.7,
+        );
+
+        asteroidGroup.visible = true;
+      }
+      function spawnComet() {
+        if (!cometGroup) return;
+
+        if (asteroidActive) return;
+
+        cometActive = true;
+
+        cometX = 3.0;
+
+        cometGroup.position.set(
+          camera.position.x + cometX,
+          camera.position.y,
+          camera.position.z - 0.7,
+        );
+
+        cometGroup.visible = true;
+      }
+      function animate() {
+        requestAnimationFrame(animate);
+        const delta = clock.getDelta();
+        controls.update();
+
+        /* Earth rotation */
+
+        if (globe) {
+          globe.rotation.y += 0.4 * delta;
+        }
+
+        /* Satellite orbit */
+
+        // orbitAngle += 0.01;
+        orbitAngle += 0.6 * delta;
+
+        if (globe && satellite) {
+          const earthPos = globe.position;
+
+          const radius = 1.6;
+
+          satellite.position.set(
+            earthPos.x + radius * Math.cos(orbitAngle),
+            earthPos.y + 0.2,
+            earthPos.z + radius * Math.sin(orbitAngle),
+          );
+
+          satellite.lookAt(earthPos);
+        }
+
+        /* ISS static position */
+
+        if (globe && iss) {
+          const earthPos = globe.position;
+
+          iss.position.set(
+            earthPos.x - 2.5, // more left
+            earthPos.y + 1.2, // more up
+            earthPos.z + 0.6, // slight forward
+          );
+        }
+
+        /*Astronaut*/
+
+        /* Astronaut looping system */
+
+        if (astronaut) {
+          // astronautX += astronautSpeed;
+          astronautX += astronautSpeed * (delta - 0.001) * 60;
+          astronaut.position.set(
+            camera.position.x + astronautX,
+            camera.position.y + astronautY,
+            astronautZ,
+          );
+
+          /* Face camera */
+
+          astronaut.lookAt(camera.position);
+
+          astronaut.rotateX(-0.2);
+
+          /* Restart loop */
+
+          if (astronautX > 2.5) {
+            resetAstronaut();
+          }
+        }
+
+        /* Update animation */
+
+        if (astronautMixer) {
+          astronautMixer.update(0.016);
+        }
+
+        /* FLYBY SEQUENCE TIMER */
+
+        flybyTimer += delta;
+
+        /* Only trigger when nothing is active */
+
+        if (!asteroidActive && !cometActive) {
+          if (flybyTimer > flybyDelay) {
+            if (nextFlyby === "asteroid") {
+              spawnAsteroids();
+              nextFlyby = "comet";
+            } else {
+              spawnComet();
+              nextFlyby = "asteroid";
+            }
+
+            flybyTimer = 0;
+          }
+        }
+
+        /* ASTEROID FLYBY */
+
+        if (asteroidActive && asteroidGroup) {
+          // asteroidX += asteroidSpeed;
+          asteroidX += asteroidSpeed * delta * 60;
+          /* Move across camera */
+
+          // asteroidGroup.position.x = camera.position.x + asteroidX;
+
+          asteroidGroup.position.set(
+            camera.position.x + asteroidX,
+            camera.position.y,
+            camera.position.z - 0.7,
+          );
+
+          /* Prevent rotation */
+
+          asteroidGroup.rotation.set(0, 0, 0);
+
+          /* Rotate rocks */
+
+          // asteroidGroup.rotation.y += 0.05;
+          // asteroidGroup.rotation.x += 0.02;
+
+          /* Camera jitter when near */
+
+          if (Math.abs(asteroidX) < 2) {
+            // jitterAmount = 0.02;
+            jitterAmount = 0.008;
+          }
+
+          /* Reset after pass */
+
+          if (asteroidX > 6) {
+            asteroidActive = false;
+
+            asteroidGroup.visible = false;
+          }
+        }
+        /* CAMERA JITTER */
+
+        if (jitterAmount > 0) {
+          camera.position.x += (Math.random() - 0.5) * jitterAmount;
+
+          camera.position.y += (Math.random() - 0.5) * jitterAmount;
+
+          jitterAmount *= 0.09;
+        }
+
+        /* COMET PASS */
+        if (cometActive && cometGroup) {
+          cometX -= cometSpeed;
+          // cometX -= cometSpeed * delta * 60;
+          cometGroup.position.set(
+            camera.position.x + cometX,
+            camera.position.y,
+            camera.position.z - 0.7,
+          );
+        }
+
+        if (cometJitter > 0) {
+          camera.position.x += (Math.random() - 0.5) * cometJitter;
+
+          camera.position.y += (Math.random() - 0.5) * cometJitter;
+
+          // cometJitter *= 0.9;
+          cometJitter = 0.004;
+        }
+        if (cometX < -6) {
+          cometActive = false;
+
+          cometGroup.visible = false;
+        }
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      function addStarField() {
+        /* Starfield */
+
+        const starGeometry = new THREE.BufferGeometry();
+
+        const starCount = 8000;
+
+        const starVertices = [];
+
+        for (let i = 0; i < starCount; i++) {
+          const x = (Math.random() - 0.5) * 750;
+          const y = (Math.random() - 0.5) * 750;
+          const z = (Math.random() - 0.5) * 750;
+
+          starVertices.push(x, y, z);
+        }
+
+        starGeometry.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(starVertices, 3),
+        );
+
+        const starMaterial = new THREE.PointsMaterial({
+          color: 0xffffff,
+          size: 0.7,
+        });
+
+        const stars = new THREE.Points(starGeometry, starMaterial);
+
+        scene.add(stars);
+      }
+
+      /* Resize */
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+    <script src="/js/info-map.js"></script>
+    <script src="/js/3d-model-map.js"></script>
+    <script>
+      const dropZone = document.getElementById("dropZone");
+
+      const fileInput = document.getElementById("fileInput");
+
+      dropZone.onclick = () => fileInput.click();
+      fileInput.addEventListener("change", async function () {
+        const formData = new FormData();
+        formData.append("file", this.files[0]);
+
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        document.getElementById("resultBox").style.display = "block";
+        await renderResult(data);
+      });
+      async function renderResult(data) {
+        document.getElementById("resultTitle").innerHTML =
+          `<span class="material-symbols-outlined">check_circle</span> ${data.prediction.toUpperCase()} [${data.confidence}%]`;
+        document.getElementById("3dModelView").innerHTML =
+          ThreeDModelMap[data.prediction];
+        document.getElementById("resultBaseDetails").innerHTML =
+          `<div class="title question"><span class="material-symbols-outlined">info</span> Name </div> <h3 class="answer">${infoMap[data.prediction].name}</h3>`;
+          document.getElementById("resultBaseDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined">stack_group</span> Category </div> <h3 class="answer">${infoMap[data.prediction].category}</h3>`;
+          document.getElementById("resultBaseDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined">description</span> Description </div> <h3 class="answer">${infoMap[data.prediction].description}</h3>`;
+          document.getElementById("resultBaseDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined">date_range</span> Year Found </div> <h3 class="answer">${infoMap[data.prediction].history.year_discovered}</h3>`;
+          document.getElementById("resultBaseDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined">person_search</span> Discovered By </div> <h3 class="answer">${infoMap[data.prediction].history.discovered_by}</h3>`;
+          document.getElementById("resultAdditionalDetails").innerHTML = `<div class="title question"><span class="material-symbols-outlined"> whatshot </span> Scientific Significance </div>`;
+          for (const significance of infoMap[data.prediction].scientific_significance) {
+            document.getElementById("resultAdditionalDetails").innerHTML += `<h3 class="answer">  <span class="material-symbols-outlined">arrow_right</span> ${significance}</h3>`;
+          }
+          document.getElementById("resultAdditionalDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined">counter_1</span> First Major Observation </div> <h3 class="answer">${infoMap[data.prediction].history.first_major_observation}</h3>`;
+          document.getElementById("resultAdditionalDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined"> key </span> Key Facts </div>`;
+          for (const keyFact in infoMap[data.prediction].key_facts) {
+            document.getElementById("resultAdditionalDetails").innerHTML += `<h3 class="answer">  <span class="material-symbols-outlined">arrow_right</span> ${keyFact}</h3>`;
+          }
+          document.getElementById("resultAdditionalDetails").innerHTML += `<div class="title question"><span class="material-symbols-outlined"> rocket_launch </span> Major Missions </div>`;
+          for (const majorMission of infoMap[data.prediction].major_missions) {
+            document.getElementById("resultAdditionalDetails").innerHTML += `<h3 class="answer">${majorMission}</h3>`;
+          }
+          document.getElementById("funfact").innerHTML =
+          `<div class="title"><span class="material-symbols-outlined">sticker</span> Fun Fact </div> ${infoMap[data.prediction].fun_fact}`;
+          document.getElementById("notableevent").innerHTML +=
+          `<div class="title"><span class="material-symbols-outlined">edit_note</span> Notable Events </div> ${infoMap[data.prediction].notable_events.join(",")}`;
+      }
+    </script>
+  </body>
+</html>

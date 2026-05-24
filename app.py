@@ -10,10 +10,12 @@ from model_loader import predict_image
 # from utils import galaxy_info
 
 app = FastAPI()
-app.mount("/js", StaticFiles(directory="frontend/js"), name="js")
-app.mount("/3d-models", StaticFiles(directory="frontend/3d-models"), name="models")
+# Serve static assets from the repository-level `js` and `3d-models` folders
+app.mount("/js", StaticFiles(directory="js"), name="js")
+app.mount("/3d-models", StaticFiles(directory="3d-models"), name="models")
 
-templates = Jinja2Templates(directory="frontend")
+# Templates live at the repository root (index.html in project root)
+templates = Jinja2Templates(directory=".")
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
